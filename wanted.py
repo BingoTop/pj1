@@ -18,11 +18,12 @@ options.add_argument("disable-gpu")
 # cur = con.cursor()
 # ---------------------
 
+# cur.execute("CREATE TABLE IF NOT EXISTS jobs(id integer PRIMARY KEY autoincrement, job CHAR(32),address text,experience CHAR(32))")
 
 def iframe_checker(url):
     req = requests.get(url)
 
-    driver = webdriver.Chrome("/home/jaewon/다운로드/chromedriver", chrome_options=options)
+    driver = webdriver.Chrome("C://chromedriver.exe", chrome_options=options)
     driver.get(url)
     iframe = driver.find_elements_by_tag_name('iframe')
     print(iframe)
@@ -42,15 +43,23 @@ def iframe_checker(url):
 class WantedHandler:
     def __init__(self, url):
         self.url = url
+        self.driver = webdriver.Chrome("C://chromedriver.exe")
+    
+    def create_DB(self,name):
 
-        self.driver = webdriver.Chrome("/home/jaewon/다운로드/chromedriver")
+        self.con = sqlite3.connect(name)
+        self.cur = self.con.cursor()
+        self.cur.execute("CREATE TABLE IF NOT EXISTS jobs(id integer PRIMARY KEY autoincrement, job CHAR(32),address text,experience CHAR(32))")
 
+        
     def Parse(self):
-        # req = requests.get(self.url)
+#browser.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         self.driver.get(self.url)
+        self.driver.implicitly_wait(2)
         soup = BeautifulSoup(self.driver.page_source, 'html.parser')
-        titles = soup.select("ul.clearfix > li > div > a  > div > dl > dt")
-        companies = soup.select("ul.clearfix > li > div > a  > div > dl > dd")
+        titles = soup.select("ul.clearfix > li > div > a > div > dl > dt")
+        companies = soup.select("ul.clearfix > li > div > a > div > dl > dd")
+        
         
         for title in titles:
             print(title.text)
@@ -63,7 +72,7 @@ class WantedHandler:
 class RocketPunchHandler:
     def __init__(self, url):
         self.url = url
-        self.driver = webdriver.Chrome("/home/jaewon/다운로드/chromedriver")
+        self.driver = webdriver.Chrome("C://chromedriver.exe")
 
     def Parse(self):
         req = requests.get(self.url)
@@ -75,7 +84,7 @@ class RocketPunchHandler:
 class ProgrammersHandler:
     def __init__(self, url):
         self.url = url
-        # self.driver = webdriver.Chrome("/home/jaewon/다운로드/chromedriver")
+        # self.driver = webdriver.Chrome("C://chromedriver.exe")
         self.count = 1
 
         # ----sqlite3 설정--------
@@ -87,7 +96,7 @@ class ProgrammersHandler:
 
     def Parse(self):
         req = requests.get(self.url+str(self.count))
-        print(url)
+        
         while req.status_code == 200:
             soup = BeautifulSoup(req.content, 'html.parser')
             titles = soup.select("h4.position-title")
