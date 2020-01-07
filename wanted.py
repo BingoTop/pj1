@@ -3,14 +3,19 @@ from bs4 import BeautifulSoup
 from selenium import webdriver
 import time
 import sqlite3
-
+from selenium.webdriver.common.keys import Keys
+from fake_useragent import UserAgent
 
 # ---headless 설정 -----
 options = webdriver.ChromeOptions()
+ua = UserAgent(verify_ssl=False)
+userAgent = ua.random
+print(userAgent)
+# options.add_argument('headless')
+options.add_argument('--start-fullscreen')
+# options.add_argument("disable-gpu")
+options.add_argument(f"user-agent={userAgent}")
 
-options.add_argument('headless')
-options.add_argument('window-size=1920x1080')
-options.add_argument("disable-gpu")
 # ----------------------
 
 # ---sqlite3 설정 -----
@@ -43,7 +48,7 @@ def iframe_checker(url):
 class WantedHandler:
     def __init__(self, url):
         self.url = url
-        self.driver = webdriver.Chrome("C://chromedriver.exe")
+        self.driver = webdriver.Chrome("C://chromedriver.exe",chrome_options=options)
     
     def create_DB(self,name):
 
@@ -53,19 +58,46 @@ class WantedHandler:
 
         
     def Parse(self):
-#browser.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         self.driver.get(self.url)
         self.driver.implicitly_wait(2)
         soup = BeautifulSoup(self.driver.page_source, 'html.parser')
-        titles = soup.select("ul.clearfix > li > div > a > div > dl > dt")
+        titles = soup.select("#__next > div > div._1yHloYOs_bDD0E-s121Oaa > div._2y4sIVmvSrf6Iy63okz9Qh > div > ul > li > div > a > div > dl > dt")
         companies = soup.select("ul.clearfix > li > div > a > div > dl > dd")
+    
+        for n in range(20):
+            
+            for _ in range(10):
+                self.driver.find_element_by_tag_name("body").send_keys(Keys.PAGE_DOWN)
+
+            time.sleep(1)
+
+            self.driver.implicitly_wait(2)
+        title_len = self.driver.find_elements_by_css_selector("#__next > div > div._1yHloYOs_bDD0E-s121Oaa > div._2y4sIVmvSrf6Iy63okz9Qh > div > ul > li > div > a > div > dl > dt")
         
         
-        for title in titles:
-            print(title.text)
-        for company in companies:
-            print(company.text)
-        
+        count = len(title_len)
+        while count > 0:
+            
+            for num in range(0,len(title_len)):
+                self.driver.find_elements_by_css_selector("#__next > div > div._1yHloYOs_bDD0E-s121Oaa > div._2y4sIVmvSrf6Iy63okz9Qh > div > ul > li > div > a")[num].click()
+                time.sleep(5)
+                soup = BeautifulSoup(self.driver.page_source,'html.parser')
+                contents = soup.select("section")[2]
+                c = []
+                for content in contents:
+                    c.append(content.text)
+                
+                print(c)
+                self.driver.back()
+                time.sleep(5)
+
+                if num > 20:
+                    for _ in range(5):
+                        self.driver.find_element_by_tag_name("body").send_keys(Keys.PAGE_DOWN)
+
+                count -=1
+
+            
 
 
 
